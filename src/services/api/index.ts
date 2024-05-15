@@ -1,9 +1,14 @@
+'use client'
+
 const request = (url: string, method: string = "GET", body?: object) => {
+
+
     return fetch(`${process.env.NEXT_PUBLIC_API_URL}${url}`, {
         method,
         body: JSON.stringify(body),
         headers: {
-            'content-type': 'application/json'
+            'content-type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
         }
     });
 };
@@ -16,8 +21,24 @@ export const signUp = (name: string, email: string, password: string) => {
     return request('/user/signup', "POST", {name, email, password});
 };
 
+export const getUsers = () => {
+    return request('/user/', "GET");
+};
+
+export const getUserById = () => {
+    return request('/user/:id', "GET");
+};
+
+export const updatedUser = (name: string, email: string) => {
+    return request('/user/update', "PUT", {name, email});
+};
+
+export const deleteUser = (userId: string) => {
+    return request('/user/delete', "DELETE", {userId});
+}
+
 export const getAllPosts = () => {
-    return request('/post/');
+    return request('/post/', "GET");
 };
 
 export const getPostById = (id: string) => {
