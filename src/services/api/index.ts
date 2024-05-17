@@ -38,7 +38,7 @@ export const deleteUser = (userId: string) => {
 }
 
 export const getAllPosts = () => {
-    return request('/post/', "GET");
+    return request('/post/');
 };
 
 export const getPostById = (id: string) => {
