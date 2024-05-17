@@ -27,7 +27,7 @@ function PostCard({post}: PostProps) {
 	}, []);
 
     return (
-        <div className="w-4/12 p-6 shadow-lg bg-white rounded-lg border-indigo-700 border-2 h-72">
+        <div className="w-4/12 p-6 shadow-lg bg-white rounded-lg border-indigo-700 border-2 h-72 shadow-indigo-500">
             <div>
                 <h2 className="bg-neutral-300 hover:bg-neutral-400/65 text-base rounded-md w-full px-2 py-1 focus:outline-none focus:ring-0 focus:border-gray-600
                 transition duration-300 h-12 text-black">
@@ -42,38 +42,64 @@ function PostCard({post}: PostProps) {
             </div>
             <div>
                 <p className="text-indigo-700 mt-2 flex">{formatDate(post.createdAt)}</p>
-                {post.updated && <p title={formatDate(post.updatedAt)} className="text-indigo-700 mt-2 flex">(edited)</p>}
+                {post.updated && 
+                <div title={formatDate(post.updatedAt)} className="text-indigo-700 mt-2 flex">
+                    <label>
+                        (edited)
+                    </label>
+                </div>}
             </div>
         </div>
     )
 }
 
-const Home = () => {
+const Posts = () => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
-    const fetchPostData = useCallback(async () => {
-		setLoading(true);
-		const response = await getAllPosts();
-		if(!response.ok) return;
-		
-		const data = await response.json();
-
-		await new Promise(resolve => setTimeout(resolve, Math.random() * 500));
-		
-		setPosts(data.posts);
-		setLoading(false);
+	useEffect(() => {
+        getAllPosts()
+        .then(res => res.json())
+        .then(data => setPosts(data.result))
 	}, []);
 
-	useEffect(() => {
-		if(!posts)
-			fetchPostData();
-	}, [posts, fetchPostData]);
+    const handleDeletePost = async (post: Post) => {
+            // const handleDeletePost = posts.filter(post => post.id !== postId);
+            // setPosts(handleDeletePost);
+            const postId = post.id;
+            if (postId) {
+                deletePost(postId);
+            }
+    }
+
+    const deletedPost = (postId: string) => {
+        const updatedPosts = posts.filter(post => post.id !== postId);
+        setPosts(updatedPosts);
+    }
+
+    const handleEditPost = (post: Post) => {
+        const postId = post.id;
+        if (postId) {
+            const newTitle: string = prompt('Enter the new title: ') as string;
+            const newContent: string = prompt('Enter the new content: ') as string;
+            updatePost(postId, newTitle, newContent);
+        }
+    }
+
+    const updatePostInfo = (updatedPost: Post) => {
+        setPosts(posts.map(post => 
+            post.id === updatedPost.id ? updatedPost : post
+        ));
+    }
+
+    if (!updatePostInfo) {
+        return console.log('update failed');
+    }
 
     return (
-        <div className="flex justify-center grid-flow-col bg-neutral-800/70 h-screen">
+        <div className="flex flex-col justify-center bg-neutral-800/70 h-screen place-items-center shadow-md shadow-indigo-500">
             <div className="w-4/12 p-6 shadow-lg bg-white rounded-lg border-indigo-700 border-2 h-72">
                 <div>
                     <input type="text" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} 
@@ -97,13 +123,24 @@ const Home = () => {
                 </div>
             </div>
 
-            <div>
-                {posts?.map((post) => 
-                    <PostCard key={post.id} post={post} />
+            <ul className="flex flex-wrap grid-rows-6 content-center mt-3">
+                {posts?.map((post) => (
+                    <li key={post.id}>
+                        <PostCard post={post} />            
+                        <button onClick={() => handleDeletePost} className="text-black border-2 border-indigo-700 bg-indigo-700 rounded-md size-9
+                        transition duration-300 py-1 hover:bg-transparent hover:text-indigo-700 hover:font-semibold mt-2 mb-1 shadow-lg shadow-indigo-500">
+                            Delete
+                        </button>
+                        <button onClick={() => handleEditPost} className="text-black border-2 border-indigo-700 bg-indigo-700 rounded-md size-9
+                        transition duration-300 py-1 hover:bg-transparent hover:text-indigo-700 hover:font-semibold mt-2 mb-1 shadow-lg shadow-indigo-500 ml-3">
+                            Edit
+                        </button>
+                    </li>
+                )
                 )}
-            </div>
+            </ul>
         </div>
     );
 }
 
-export default Home;
+export default Posts;
